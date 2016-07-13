@@ -19,11 +19,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   7 .debug_frame  00000104  00000000  00000000  000019d0  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    0000027a  00000000  00000000  00001ad4  2**0
+  8 .debug_str    000002b5  00000000  00000000  00001ad4  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    00000292  00000000  00000000  00001d4e  2**0
+  9 .debug_loc    00000292  00000000  00000000  00001d89  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 00000058  00000000  00000000  00001fe0  2**0
+ 10 .debug_ranges 00000058  00000000  00000000  0000201b  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -194,31 +194,16 @@ int main(void)
   de:	e8 cf       	rjmp	.-48     	; 0xb0 <main+0x54>
 
 000000e0 <wait_stat>:
-	TWSR = 0;
-}
-
-static uint8_t wait_stat(void)
-{
-	while(!(TWCR & _BV(TWINT)));
   e0:	ec eb       	ldi	r30, 0xBC	; 188
   e2:	f0 e0       	ldi	r31, 0x00	; 0
   e4:	80 81       	ld	r24, Z
   e6:	88 23       	and	r24, r24
   e8:	ec f7       	brge	.-6      	; 0xe4 <wait_stat+0x4>
-	
-	return TW_STATUS;
   ea:	80 91 b9 00 	lds	r24, 0x00B9
-}
   ee:	88 7f       	andi	r24, 0xF8	; 248
   f0:	08 95       	ret
 
 000000f2 <i2c_write>:
-	}
-	return 1;
-}
-
-static uint8_t i2c_write(uint8_t addr, uint8_t eeaddr, uint8_t dat)
-{
   f2:	bf 92       	push	r11
   f4:	cf 92       	push	r12
   f6:	df 92       	push	r13
@@ -231,39 +216,19 @@ static uint8_t i2c_write(uint8_t addr, uint8_t eeaddr, uint8_t dat)
  104:	c8 2e       	mov	r12, r24
  106:	b6 2e       	mov	r11, r22
  108:	d4 2e       	mov	r13, r20
-
-static uint8_t i2c_start(uint8_t addr, uint8_t eeaddr)
-{
-i2c_restart:
-i2c_start_retry:
-	TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
  10a:	cc eb       	ldi	r28, 0xBC	; 188
  10c:	d0 e0       	ldi	r29, 0x00	; 0
  10e:	0f 2e       	mov	r0, r31
  110:	f4 ea       	ldi	r31, 0xA4	; 164
  112:	ff 2e       	mov	r15, r31
  114:	f0 2d       	mov	r31, r0
-		case TW_MT_ARB_LOST:
-			goto i2c_start_retry;
-		default:
-			return 0;
-	}
-	TWDR = addr | TW_WRITE;
  116:	0b eb       	ldi	r16, 0xBB	; 187
  118:	10 e0       	ldi	r17, 0x00	; 0
-	TWCR = _BV(TWINT) | _BV(TWEN);
  11a:	0f 2e       	mov	r0, r31
  11c:	f4 e8       	ldi	r31, 0x84	; 132
  11e:	ef 2e       	mov	r14, r31
  120:	f0 2d       	mov	r31, r0
-
-static uint8_t i2c_start(uint8_t addr, uint8_t eeaddr)
-{
-i2c_restart:
-i2c_start_retry:
-	TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
  122:	f8 82       	st	Y, r15
-	switch(wait_stat()){
  124:	dd df       	rcall	.-70     	; 0xe0 <wait_stat>
  126:	80 31       	cpi	r24, 0x10	; 16
  128:	21 f0       	breq	.+8      	; 0x132 <i2c_write+0x40>
@@ -271,17 +236,9 @@ i2c_start_retry:
  12c:	d1 f3       	breq	.-12     	; 0x122 <i2c_write+0x30>
  12e:	88 30       	cpi	r24, 0x08	; 8
  130:	f1 f4       	brne	.+60     	; 0x16e <i2c_write+0x7c>
-		case TW_MT_ARB_LOST:
-			goto i2c_start_retry;
-		default:
-			return 0;
-	}
-	TWDR = addr | TW_WRITE;
  132:	f8 01       	movw	r30, r16
  134:	c0 82       	st	Z, r12
-	TWCR = _BV(TWINT) | _BV(TWEN);
  136:	e8 82       	st	Y, r14
-	switch(wait_stat()){
  138:	d3 df       	rcall	.-90     	; 0xe0 <wait_stat>
  13a:	80 32       	cpi	r24, 0x20	; 32
  13c:	91 f3       	breq	.-28     	; 0x122 <i2c_write+0x30>
@@ -289,17 +246,9 @@ i2c_start_retry:
  140:	81 f3       	breq	.-32     	; 0x122 <i2c_write+0x30>
  142:	88 31       	cpi	r24, 0x18	; 24
  144:	a1 f4       	brne	.+40     	; 0x16e <i2c_write+0x7c>
-		case TW_MT_ARB_LOST:
-			goto i2c_start_retry;
-		default:
-			return 0;
-	}
-	TWDR = eeaddr;
  146:	f8 01       	movw	r30, r16
  148:	b0 82       	st	Z, r11
-	TWCR = _BV(TWINT) | _BV(TWEN);
  14a:	e8 82       	st	Y, r14
-	switch(wait_stat()){
  14c:	c9 df       	rcall	.-110    	; 0xe0 <wait_stat>
  14e:	80 33       	cpi	r24, 0x30	; 48
  150:	29 f0       	breq	.+10     	; 0x15c <i2c_write+0x6a>
@@ -308,71 +257,31 @@ i2c_start_retry:
  156:	88 32       	cpi	r24, 0x28	; 40
  158:	51 f4       	brne	.+20     	; 0x16e <i2c_write+0x7c>
  15a:	0b c0       	rjmp	.+22     	; 0x172 <i2c_write+0x80>
-}
-
-static void i2c_stop(void)
-{
-	
-	TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
  15c:	84 e9       	ldi	r24, 0x94	; 148
  15e:	80 93 bc 00 	sts	0x00BC, r24
-	while(TWCR & _BV(TWSTO));
  162:	ec eb       	ldi	r30, 0xBC	; 188
  164:	f0 e0       	ldi	r31, 0x00	; 0
  166:	80 81       	ld	r24, Z
  168:	84 fd       	sbrc	r24, 4
  16a:	fd cf       	rjmp	.-6      	; 0x166 <i2c_write+0x74>
  16c:	0c c0       	rjmp	.+24     	; 0x186 <i2c_write+0x94>
-	return 1;
-}
-
-static uint8_t i2c_write(uint8_t addr, uint8_t eeaddr, uint8_t dat)
-{
-	uint8_t rv=0;
  16e:	80 e0       	ldi	r24, 0x00	; 0
  170:	0d c0       	rjmp	.+26     	; 0x18c <i2c_write+0x9a>
-
-restart:
-begin:
-	if(!i2c_start(addr, eeaddr))	goto quit;
-	
-	TWDR = dat;
  172:	f8 01       	movw	r30, r16
  174:	d0 82       	st	Z, r13
-	TWCR = _BV(TWINT) | _BV(TWEN);
  176:	e8 82       	st	Y, r14
-	switch(wait_stat()){
  178:	b3 df       	rcall	.-154    	; 0xe0 <wait_stat>
  17a:	88 32       	cpi	r24, 0x28	; 40
  17c:	31 f0       	breq	.+12     	; 0x18a <i2c_write+0x98>
  17e:	88 33       	cpi	r24, 0x38	; 56
  180:	81 f2       	breq	.-96     	; 0x122 <i2c_write+0x30>
-	return 1;
-}
-
-static uint8_t i2c_write(uint8_t addr, uint8_t eeaddr, uint8_t dat)
-{
-	uint8_t rv=0;
  182:	80 e0       	ldi	r24, 0x00	; 0
  184:	03 c0       	rjmp	.+6      	; 0x18c <i2c_write+0x9a>
  186:	80 e0       	ldi	r24, 0x00	; 0
  188:	01 c0       	rjmp	.+2      	; 0x18c <i2c_write+0x9a>
-			goto begin;
-		case TW_MT_DATA_NACK:
-		default:
-			goto quit;
-	}
-	rv = 1;
  18a:	81 e0       	ldi	r24, 0x01	; 1
-}
-
-static void i2c_stop(void)
-{
-	
-	TWCR = _BV(TWINT) | _BV(TWSTO) | _BV(TWEN);
  18c:	94 e9       	ldi	r25, 0x94	; 148
  18e:	90 93 bc 00 	sts	0x00BC, r25
-	while(TWCR & _BV(TWSTO));
  192:	ec eb       	ldi	r30, 0xBC	; 188
  194:	f0 e0       	ldi	r31, 0x00	; 0
  196:	90 81       	ld	r25, Z
@@ -388,12 +297,6 @@ static void i2c_stop(void)
  19e:	fa 95       	dec	r31
  1a0:	f1 f7       	brne	.-4      	; 0x19e <i2c_write+0xac>
  1a2:	00 c0       	rjmp	.+0      	; 0x1a4 <i2c_write+0xb2>
-quit:
-	i2c_stop();
-	_delay_us(50);	// １命令ごとに余裕を見て50usウェイトします。
-	
-	return rv;
-}
  1a4:	df 91       	pop	r29
  1a6:	cf 91       	pop	r28
  1a8:	1f 91       	pop	r17
@@ -406,11 +309,6 @@ quit:
  1b6:	08 95       	ret
 
 000001b8 <i2c_cmd>:
-
-// コマンドを送信します。HD44780でいうRS=0に相当
-static void i2c_cmd(uint8_t db)
-{
-	i2c_write(0b01111100, 0b00000000, db);
  1b8:	48 2f       	mov	r20, r24
  1ba:	60 e0       	ldi	r22, 0x00	; 0
  1bc:	8c e7       	ldi	r24, 0x7C	; 124
@@ -418,12 +316,6 @@ static void i2c_cmd(uint8_t db)
  1c0:	08 95       	ret
 
 000001c2 <I2C_LCD_clear>:
-	I2C_LCD_clear();
-}
-
-void I2C_LCD_clear(void)
-{
-	i2c_cmd(0b00000001); // Clear Display
  1c2:	81 e0       	ldi	r24, 0x01	; 1
  1c4:	f9 df       	rcall	.-14     	; 0x1b8 <i2c_cmd>
 	#else
@@ -441,22 +333,9 @@ void I2C_LCD_clear(void)
  1d2:	08 95       	ret
 
 000001d4 <I2C_LCD_init>:
-	// 3.0V時 数値を上げると濃くなります。
-	// 2.7Vでは0b111000くらいにしてください。。
-	// コントラストは電源電圧，温度によりかなり変化します。実際の液晶をみて調整してください。
-	uint8_t contrast = 0b111000;
-	
-	I2C_DIR |= _BV(I2C_LCD_RST);
  1d4:	3b 9a       	sbi	0x07, 3	; 7
-{
-	// TWBR = {(CLOCK / I2C_CLK) - 16} / 2;
-	// I2C_CLK = 100kHz, CLOCK = 8MHz, TWBR = 32
-	// I2C_CLK = 100kHz, CLOCK = 16MHz, TWBR = 72
-	// I2C_CLK = 100kHz, CLOCK = 20MHz, TWBR = 92
-	TWBR = 72;
  1d6:	88 e4       	ldi	r24, 0x48	; 72
  1d8:	80 93 b8 00 	sts	0x00B8, r24
-	TWSR = 0;
  1dc:	10 92 b9 00 	sts	0x00B9, r1
  1e0:	2f e9       	ldi	r18, 0x9F	; 159
  1e2:	86 e8       	ldi	r24, 0x86	; 134
@@ -467,12 +346,6 @@ void I2C_LCD_clear(void)
  1ec:	e1 f7       	brne	.-8      	; 0x1e6 <I2C_LCD_init+0x12>
  1ee:	00 c0       	rjmp	.+0      	; 0x1f0 <I2C_LCD_init+0x1c>
  1f0:	00 00       	nop
-	
-	i2c_init();
-	_delay_ms(500);
-	
-	// RST信号の送出
-	I2C_PORT &= ~_BV(I2C_LCD_RST);
  1f2:	43 98       	cbi	0x08, 3	; 8
  1f4:	89 ef       	ldi	r24, 0xF9	; 249
  1f6:	90 e0       	ldi	r25, 0x00	; 0
@@ -480,8 +353,6 @@ void I2C_LCD_clear(void)
  1fa:	f1 f7       	brne	.-4      	; 0x1f8 <I2C_LCD_init+0x24>
  1fc:	00 c0       	rjmp	.+0      	; 0x1fe <I2C_LCD_init+0x2a>
  1fe:	00 00       	nop
-	_delay_ms(1);
-	I2C_PORT |= _BV(I2C_LCD_RST);
  200:	43 9a       	sbi	0x08, 3	; 8
  202:	83 ec       	ldi	r24, 0xC3	; 195
  204:	99 e0       	ldi	r25, 0x09	; 9
@@ -495,27 +366,16 @@ void I2C_LCD_clear(void)
  214:	f1 f7       	brne	.-4      	; 0x212 <I2C_LCD_init+0x3e>
  216:	00 c0       	rjmp	.+0      	; 0x218 <I2C_LCD_init+0x44>
  218:	00 00       	nop
-	_delay_ms(10);
-	
-	// LCDの初期化
-	_delay_ms(40);
-	i2c_cmd(0b00111000); // function set
  21a:	88 e3       	ldi	r24, 0x38	; 56
  21c:	cd df       	rcall	.-102    	; 0x1b8 <i2c_cmd>
-	i2c_cmd(0b00111001); // function set
  21e:	89 e3       	ldi	r24, 0x39	; 57
  220:	cb df       	rcall	.-106    	; 0x1b8 <i2c_cmd>
-	i2c_cmd(0b00010100); // interval osc
  222:	84 e1       	ldi	r24, 0x14	; 20
  224:	c9 df       	rcall	.-110    	; 0x1b8 <i2c_cmd>
-	i2c_cmd(0b01110000 | (contrast & 0xF)); // contrast Low
  226:	88 e7       	ldi	r24, 0x78	; 120
  228:	c7 df       	rcall	.-114    	; 0x1b8 <i2c_cmd>
-	
-	i2c_cmd(0b01011100 | ((contrast >> 4) & 0x3)); // contast High/icon/power
  22a:	8f e5       	ldi	r24, 0x5F	; 95
  22c:	c5 df       	rcall	.-118    	; 0x1b8 <i2c_cmd>
-	i2c_cmd(0b01101100); // follower control
  22e:	8c e6       	ldi	r24, 0x6C	; 108
  230:	c3 df       	rcall	.-122    	; 0x1b8 <i2c_cmd>
  232:	9f e5       	ldi	r25, 0x5F	; 95
@@ -527,26 +387,14 @@ void I2C_LCD_clear(void)
  23e:	e1 f7       	brne	.-8      	; 0x238 <I2C_LCD_init+0x64>
  240:	00 c0       	rjmp	.+0      	; 0x242 <I2C_LCD_init+0x6e>
  242:	00 00       	nop
-	_delay_ms(300);
-
-	i2c_cmd(0b00111000); // function set
  244:	88 e3       	ldi	r24, 0x38	; 56
  246:	b8 df       	rcall	.-144    	; 0x1b8 <i2c_cmd>
-	i2c_cmd(0b00001100); // Display On
  248:	8c e0       	ldi	r24, 0x0C	; 12
  24a:	b6 df       	rcall	.-148    	; 0x1b8 <i2c_cmd>
-	
-	I2C_LCD_clear();
  24c:	ba df       	rcall	.-140    	; 0x1c2 <I2C_LCD_clear>
  24e:	08 95       	ret
 
 00000250 <I2C_LCD_home>:
-	_delay_ms(2);		 // Clear Displayは追加ウェイトが必要
-}
-
-void I2C_LCD_home(void)
-{
-	i2c_cmd(0b00000010); // return home
  250:	82 e0       	ldi	r24, 0x02	; 2
  252:	b2 df       	rcall	.-156    	; 0x1b8 <i2c_cmd>
  254:	83 ef       	ldi	r24, 0xF3	; 243
@@ -558,59 +406,25 @@ void I2C_LCD_home(void)
  260:	08 95       	ret
 
 00000262 <I2C_LCD_puts>:
-	_delay_ms(2);
-}
-
-void I2C_LCD_puts(const char* s)
-{
  262:	cf 93       	push	r28
  264:	df 93       	push	r29
-}
-
-// （主に）文字列を連続送信します。
-static void i2c_puts(uint8_t *s)
-{
-	while(*s){
  266:	fc 01       	movw	r30, r24
  268:	40 81       	ld	r20, Z
  26a:	44 23       	and	r20, r20
  26c:	41 f0       	breq	.+16     	; 0x27e <I2C_LCD_puts+0x1c>
  26e:	ec 01       	movw	r28, r24
  270:	21 96       	adiw	r28, 0x01	; 1
-}
-
-// データを送信します。HD44780でいうRS=1に相当
-static void i2c_data(uint8_t db)
-{
-	i2c_write(0b01111100, 0b01000000, db);
  272:	60 e4       	ldi	r22, 0x40	; 64
  274:	8c e7       	ldi	r24, 0x7C	; 124
  276:	3d df       	rcall	.-390    	; 0xf2 <i2c_write>
-}
-
-// （主に）文字列を連続送信します。
-static void i2c_puts(uint8_t *s)
-{
-	while(*s){
  278:	49 91       	ld	r20, Y+
  27a:	41 11       	cpse	r20, r1
  27c:	fa cf       	rjmp	.-12     	; 0x272 <I2C_LCD_puts+0x10>
-}
-
-void I2C_LCD_puts(const char* s)
-{
-	i2c_puts((uint8_t *)s);
-}
  27e:	df 91       	pop	r29
  280:	cf 91       	pop	r28
  282:	08 95       	ret
 
 00000284 <I2C_LCD_setpos>:
-
-void I2C_LCD_setpos(uint8_t x, uint8_t y)
-{
-	//i2c_cmd(0b10000000 | (x + y * 0x40));
-	i2c_cmd(0b1000000 | y << 7 | x);
  284:	80 64       	ori	r24, 0x40	; 64
  286:	90 e8       	ldi	r25, 0x80	; 128
  288:	69 9f       	mul	r22, r25

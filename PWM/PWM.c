@@ -7,26 +7,16 @@
 *  Author: gizmo
 */
 
-
 #define F_CPU    8000000ul
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include <stdint.h>
 
-#define SAMPLE_CLOCK    (8000.0f)
+#define SAMPLE_CLOCK    (16000)
 #define POW_2_16        (65536ul)
-
-#define FREQUENCY_MAX    (2000.0f)
-
-// Saw dawn wave up table
-const PROGMEM uint8_t sawUpTable[] = {
-	0,    1,    2,    3,    4,    5,    6,    7,    8,    9,    10,    11,    12,    13,    14,    15,
-	16,    17,    18,    19,    20,    21,    22,    23,    24,    25,    26,    27,    28,    29,    30,    31,
-	32,    33,    34,    35,    36,    37,    38,    39,    40,    41,    42,    43,    44,    45,    46,    47,
-	48,    49,    50,    51,    52,    53,    54,    55,    56,    57,    58,    59,    60,    61,    62,    63
-};
 
 // Sine wave table
 const PROGMEM uint8_t sineTable[] = {
@@ -98,7 +88,6 @@ const PROGMEM uint8_t sineTable[] = {
 
 volatile uint16_t phaseAccumlator;
 volatile uint16_t tuningWord;
-volatile uint8_t amp;
 
 //=============================================================================
 // 波形生成
@@ -109,7 +98,7 @@ volatile uint8_t amp;
 //
 void setDDSParameter(float frequency)
 {
-	tuningWord = (int16_t)(frequency * POW_2_16 / SAMPLE_CLOCK);
+	tuningWord = (uint16_t)(frequency * POW_2_16 / SAMPLE_CLOCK);
 }
 
 // ----------------------------------------------------------------------------
@@ -141,43 +130,29 @@ void setPWMDuty(uint8_t value)
 }
 
 //=============================================================================
-// ADC
+// Timer1割り込みハンドラ
 //
 // ----------------------------------------------------------------------------
-// getCV()
-// return: CV値(0..4095)
 //
-uint16_t getCV() {
-	// ADC_CVの値を取得
-	return 901;    // 440Hz
-	//return 4095;    // 2000Hz
+ISR(TIMER1_COMPA_vect)
+{
+	uint8_t v;	// PWM出力値
+	
+	// Debug用: PD6
+	PORTD |= (1 << PORTD6);
+	
+	v = generateSawWave();
+	setPWMDuty(v);
+	
+	// Debug用: PD6
+	PORTD &= ~(1 << PORTD6);
 }
-
-// ----------------------------------------------------------------------------
-// getGate()
-// return: Gate値(0..255)
-//
-uint8_t getGate() {
-	// ADC_GATEの値を取得
-	return 255;
-}
-
-//=============================================================================
-// ラッチ割込み
-//
-//ISR()
-//    generateSawWave()を呼び出し
-//    amp値を乗算
-//    PWM DACに出力値を設定
 
 //=============================================================================
 // メイン・ルーチン
 //
 int main()
 {
-	uint16_t cv;
-	uint8_t v;
-	
 	//-------------------------------------------------------------------------
 	// PORT設定
 	//-------------------------------------------------------------------------
@@ -189,9 +164,6 @@ int main()
 	
 	//-------------------------------------------------------------------------
 	// PWM設定
-	//-------------------------------------------------------------------------
-	// TCCR0A = 0;
-	// TCCR0B = 0;
 	//-------------------------------------------------------------------------
 	// 波形生成モード: WGM0: 1:1:1
 	// 高速PWM(モード7)
@@ -213,20 +185,31 @@ int main()
 	// 分解能 6bit(0 .. 63)
 	OCR0A = 64;
 	
+	//-------------------------------------------------------------------------
+	// Timer1設定
+	//-------------------------------------------------------------------------
+	// 波形生成モード: WGM0: 1:1:1:1
+	// 高速PWM(モード15)
+	TCCR1B |= (1 << WGM13) | (1 << WGM12);
+	TCCR1A |= (1 << WGM11) | (1 << WGM10);
+	//-------------------------------------------------------------------------
+	// クロック設定: CS0: 0:0:1
+	// 分周なし
+	TCCR1B |= (1 << CS11);
+	//-------------------------------------------------------------------------
+	// Compare 1A match interrupt enable
+	TIMSK1 = (1 << OCIE1A);
+	//-------------------------------------------------------------------------
+	// Compare resister 1A
+	// サンプリングレートの設定
+	// (F_CPU / prescaler) / SAMPLE_RATE
+	OCR1A = (F_CPU / 8) / SAMPLE_CLOCK;
+	
+	setDDSParameter(440.0f);	// 440Hz
+	
+	sei();
+
 	for (;;) {
-		// Debug用: PD6
-		PORTD |= (1 << PORTD6);
-		
-		cv = getCV();
-		setDDSParameter(cv * FREQUENCY_MAX / 4096.0f);
-		amp = getGate();
-		v = generateSawWave();
-		setPWMDuty(v);
-		
-		// Debug用: PD6
-		PORTD &= ~(1 << PORTD6);
-		
-		_delay_us(100);    // 8,000Hz
 	}
 }
 // EOF

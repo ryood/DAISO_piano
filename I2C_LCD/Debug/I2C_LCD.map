@@ -504,11 +504,11 @@ END GROUP
  .debug_frame   0x00000000       0x34 I2C_LCD.o
  .debug_frame   0x00000034       0xd0 SPLC792-I2C.o
 
-.debug_str      0x00000000      0x27a
+.debug_str      0x00000000      0x2b5
  *(.debug_str)
- .debug_str     0x00000000      0x1d7 I2C_LCD.o
-                                0x210 (size before relaxing)
- .debug_str     0x000001d7       0xa3 SPLC792-I2C.o
+ .debug_str     0x00000000      0x1ce I2C_LCD.o
+                                0x207 (size before relaxing)
+ .debug_str     0x000001ce       0xe7 SPLC792-I2C.o
                                 0x28a (size before relaxing)
 
 .debug_loc      0x00000000      0x292
