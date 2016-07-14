@@ -18,6 +18,21 @@
 #define SAMPLE_CLOCK    (16000)
 #define POW_2_16        (65536ul)
 
+#define NOTE_A3	440.00f
+#define NOTE_B3	493.88f
+#define NOTE_C4	523.25f
+#define NOTE_D4	587.32f
+#define NOTE_E4	659.25f
+#define NOTE_F4	698.45f
+#define NOTE_G4	783.99f
+#define NOTE_A4	880.00f
+#define NOTE_B4 987.76f
+#define NOTE_C5	1046.50f
+#define NOTE_D5	1174.65f
+#define NOTE_E5	1318.51f
+#define NOTE_F5	1396.91f
+#define NOTE_G5	1567.98f
+
 // Sine wave table
 const PROGMEM uint8_t sineTable[] = {
 	32,
@@ -193,8 +208,8 @@ int main()
 	TCCR1B |= (1 << WGM13) | (1 << WGM12);
 	TCCR1A |= (1 << WGM11) | (1 << WGM10);
 	//-------------------------------------------------------------------------
-	// クロック設定: CS0: 0:0:1
-	// 分周なし
+	// クロック設定: CS1: 0:1:0
+	// 1/8分周
 	TCCR1B |= (1 << CS11);
 	//-------------------------------------------------------------------------
 	// Compare 1A match interrupt enable
@@ -205,11 +220,27 @@ int main()
 	// (F_CPU / prescaler) / SAMPLE_RATE
 	OCR1A = (F_CPU / 8) / SAMPLE_CLOCK;
 	
-	setDDSParameter(440.0f);	// 440Hz
+	setDDSParameter(NOTE_A3);	// 440Hz
 	
 	sei();
 
 	for (;;) {
+		setDDSParameter(NOTE_C4);
+		_delay_ms(500);
+		setDDSParameter(NOTE_D4);
+		_delay_ms(500);
+		setDDSParameter(NOTE_E4);
+		_delay_ms(500);
+		setDDSParameter(NOTE_F4);
+		_delay_ms(500);
+		setDDSParameter(NOTE_G4);
+		_delay_ms(500);
+		setDDSParameter(NOTE_A4);
+		_delay_ms(500);
+		setDDSParameter(NOTE_B4);
+		_delay_ms(500);
+		setDDSParameter(NOTE_C5);
+		_delay_ms(500);
 	}
 }
 // EOF
