@@ -18,91 +18,52 @@
 #define SAMPLE_CLOCK    (16000)
 #define POW_2_16        (65536ul)
 
+#define NOTE_C2	130.81f
+#define NOTE_D2	146.83f
+#define NOTE_E2	164.81f
+#define NOTE_F2	174.61f
+#define NOTE_G2	195.99f
+#define NOTE_A2	220.00f
+#define NOTE_B2	246.94f
+#define NOTE_C3	261.62f
+#define NOTE_D3	293.66f
+#define NOTE_E3	329.62f
+#define NOTE_F3	349.22f
+#define NOTE_G3	391.99f
 #define NOTE_A3	440.00f
 #define NOTE_B3	493.88f
 #define NOTE_C4	523.25f
-#define NOTE_D4	587.32f
-#define NOTE_E4	659.25f
-#define NOTE_F4	698.45f
-#define NOTE_G4	783.99f
-#define NOTE_A4	880.00f
-#define NOTE_B4 987.76f
-#define NOTE_C5	1046.50f
-#define NOTE_D5	1174.65f
-#define NOTE_E5	1318.51f
-#define NOTE_F5	1396.91f
-#define NOTE_G5	1567.98f
 
-// Sine wave table
-const PROGMEM uint8_t sineTable[] = {
-	32,
-	28,
-	25,
-	22,
-	19,
-	16,
-	14,
-	11,
-	9,
-	7,
-	5,
-	3,
-	2,
-	1,
-	0,
-	0,
-	0,
-	0,
-	0,
-	1,
-	2,
-	3,
-	5,
-	7,
-	9,
-	11,
-	14,
-	16,
-	19,
-	22,
-	25,
-	28,
-	32,
-	35,
-	38,
-	41,
-	44,
-	47,
-	49,
-	52,
-	54,
-	56,
-	58,
-	60,
-	61,
-	62,
-	63,
-	63,
-	64,
-	63,
-	63,
-	62,
-	61,
-	60,
-	58,
-	56,
-	54,
-	52,
-	49,
-	47,
-	44,
-	41,
-	38,
-	35,
+#define WAVE_SIN	0
+#define WAVE_SAW	1
+#define WAVE_SQR	2
+#define WAVE_N		3
+
+// wave table
+const PROGMEM uint8_t sinTable[] = {
+	31,	28,	25,	22,	19,	16,	14,	11,	9,	7,	5,	3,	2,	1,	0,	0,
+	0,	0,	0,	1,	2,	3,	5,	7,	9,	11,	14,	16,	19,	22,	25,	28,
+	31,	35,	38,	41,	44,	47,	49,	52,	54,	56,	58,	60,	61,	62,	63,	63,
+	63,	63,	63,	62,	61,	60,	58,	56,	54,	52,	49,	47,	44,	41,	38,	35,
+};
+const PROGMEM uint8_t sawTable[] = {
+	0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,	11,	12,	13,	14,	15,
+	16,	17,	18,	19,	20,	21,	22,	23,	24,	25,	26,	27,	28,	29,	30,	31,
+	32,	33,	34,	35,	36,	37,	38,	39,	40,	41,	42,	43,	44,	45,	46,	47,
+	48,	49,	50,	51,	52,	53,	54,	55,	56,	57,	58,	59,	60,	61,	62,	63,
+};
+const PROGMEM uint8_t sqrTable[] = {
+	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
+	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
+	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,
+	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,	63,
 };
 
 volatile uint16_t phaseAccumlator;
 volatile uint16_t tuningWord;
+
+uint8_t const *waveForms[WAVE_N];
+volatile uint8_t  waveForm;
 
 //=============================================================================
 // 波形生成
@@ -128,12 +89,9 @@ uint8_t generateSawWave()
 	
 	// 右へシフト: 16bit -> 6bit(64個)
 	index = phaseAccumlator >> 10;
-	return pgm_read_byte(&sineTable[index]);
+	return pgm_read_byte(waveForms[waveForm] + index);
 }
 
-//=============================================================================
-// 波形生成
-//
 // ----------------------------------------------------------------------------
 // setPWMDuty()
 // parameter: value: 設定するDuty(0 .. OCR0A)
@@ -153,14 +111,16 @@ ISR(TIMER1_COMPA_vect)
 {
 	uint8_t v;	// PWM出力値
 	
-	// Debug用: PD6
+	#if DEBUG
 	PORTD |= (1 << PORTD6);
+	#endif
 	
 	v = generateSawWave();
 	setPWMDuty(v);
 	
-	// Debug用: PD6
+	#if DEBUG
 	PORTD &= ~(1 << PORTD6);
+	#endif
 }
 
 //=============================================================================
@@ -168,14 +128,18 @@ ISR(TIMER1_COMPA_vect)
 //
 int main()
 {
+	waveForms[0] = sinTable;
+	waveForms[1] = sawTable;
+	waveForms[2] = sqrTable;
+	
 	//-------------------------------------------------------------------------
 	// PORT設定
 	//-------------------------------------------------------------------------
-	// DDRD = 0;
 	DDRD |= (1 << DDD5);    // PD5(OC0B): PWM out
-	// Debug用
-	//
+	
+	#if DEBUG
 	DDRD |= (1 << DDB6);    // PD6: output
+	#endif
 	
 	//-------------------------------------------------------------------------
 	// PWM設定
@@ -220,26 +184,45 @@ int main()
 	// (F_CPU / prescaler) / SAMPLE_RATE
 	OCR1A = (F_CPU / 8) / SAMPLE_CLOCK;
 	
-	setDDSParameter(NOTE_A3);	// 440Hz
+	//setDDSParameter(1000);
 	
 	sei();
 
 	for (;;) {
+		// 波形切替
+		waveForm++;
+		if (waveForm == WAVE_N) {
+			waveForm = 0;
+		}
+		setDDSParameter(NOTE_C2);
+		_delay_ms(500);
+		setDDSParameter(NOTE_D2);
+		_delay_ms(500);
+		setDDSParameter(NOTE_E2);
+		_delay_ms(500);
+		setDDSParameter(NOTE_F2);
+		_delay_ms(500);
+		setDDSParameter(NOTE_G2);
+		_delay_ms(500);
+		setDDSParameter(NOTE_A2);
+		_delay_ms(500);
+		setDDSParameter(NOTE_B2);
+		_delay_ms(500);
+		setDDSParameter(NOTE_C3);
+		_delay_ms(500);
+		setDDSParameter(NOTE_D3);
+		_delay_ms(500);
+		setDDSParameter(NOTE_E3);
+		_delay_ms(500);
+		setDDSParameter(NOTE_F3);
+		_delay_ms(500);
+		setDDSParameter(NOTE_G3);
+		_delay_ms(500);
+		setDDSParameter(NOTE_A3);
+		_delay_ms(500);
+		setDDSParameter(NOTE_B3);
+		_delay_ms(500);
 		setDDSParameter(NOTE_C4);
-		_delay_ms(500);
-		setDDSParameter(NOTE_D4);
-		_delay_ms(500);
-		setDDSParameter(NOTE_E4);
-		_delay_ms(500);
-		setDDSParameter(NOTE_F4);
-		_delay_ms(500);
-		setDDSParameter(NOTE_G4);
-		_delay_ms(500);
-		setDDSParameter(NOTE_A4);
-		_delay_ms(500);
-		setDDSParameter(NOTE_B4);
-		_delay_ms(500);
-		setDDSParameter(NOTE_C5);
 		_delay_ms(500);
 	}
 }
